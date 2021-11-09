@@ -1,0 +1,6 @@
+# General
+/dist
+/dist_exe
+/node_modules
+/logs
+/config

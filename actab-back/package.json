@@ -1,0 +1,50 @@
+{
+  "name": "actab-back",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/main.js",
+  "bin": "./dist/main.js",
+  "pkg": {
+    "scripts": "./dist/**/*.js",
+    "targets": [
+      "node16-win-x64"
+    ],
+    "outputPath": "./dist_exe"
+  },
+  "scripts": {
+    "init:ts": "./node_modules/.bin/tsc --init",
+    "init:eslint": "./node_modules/.bin/eslint --init",
+    "build:js": "./node_modules/.bin/tsc",
+    "build:exe": "yarn build:js && pkg .",
+    "serve:udp": "yarn build:js && node ./dist/main.js --server udp",
+    "serve:api": "yarn build:js && node ./dist/main.js --server api"
+  },
+  "dependencies": {
+    "@types/koa": "^2.13.4",
+    "@types/koa-router": "^7.4.4",
+    "@types/uuid": "^8.3.1",
+    "class-transformer": "^0.4.0",
+    "commander": "^8.3.0",
+    "config": "^3.3.6",
+    "ini": "^2.0.0",
+    "koa": "^2.13.4",
+    "koa-router": "^10.1.1",
+    "log4js": "^6.3.0",
+    "mysql": "^2.18.1",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "^0.2.38",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@types/config": "^0.0.39",
+    "@types/ini": "^1.3.31",
+    "@types/node": "^16.11.6",
+    "@typescript-eslint/eslint-plugin": "^5.1.0",
+    "@typescript-eslint/parser": "^5.1.0",
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.25.2",
+    "pkg": "^5.3.3",
+    "typescript": "^4.4.4"
+  }
+}

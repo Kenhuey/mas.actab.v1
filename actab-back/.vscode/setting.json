@@ -1,0 +1,23 @@
+{
+    "tabnine.experimentalAutoImports": true,
+    "eslint.alwaysShowStatus": true,
+    "eslint.format.enable": true,
+    "prettier.tabWidth": 4,
+    "prettier.semi": true,
+    "prettier.singleQuote": false,
+    "prettier.printWidth": 100,
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "explorer.confirmDelete": false,
+    "git.ignoreLimitWarning": true
+}

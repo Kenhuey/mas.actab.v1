@@ -1,0 +1,7 @@
+.router-view {
+    transition: all 0.5s linear !important;
+    // background: #ffffff;
+    $padding-v: 28px;
+    padding-top: $padding-v;
+    // padding-bottom: $padding-v;
+}

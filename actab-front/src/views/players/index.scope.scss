@@ -1,0 +1,53 @@
+@media screen and (max-width: 768px) {
+    .main-title {
+        display: none !important;
+    }
+
+    .card-title-container-p {
+        justify-content: center;
+    }
+
+    .main-search {
+        width: 100% !important;
+    }
+}
+
+@media screen and (max-width: 1280px) {
+    .player-tab-scroll {
+        min-width: 1280px;
+    }
+}
+
+.card-title-container-p {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    .n-input {
+        font-size: 12px !important;
+    }
+    .n-button {
+        font-size: 12px !important;
+    }
+}
+
+.main-title {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    font-size: 16px !important;
+    color: #636363 !important;
+    height: 100% !important;
+}
+
+.main-search {
+    width: 256px;
+    display: flex;
+    justify-content: right;
+    align-items: center;
+}
+
+.player-tab {
+    width: 100%;
+    margin-top: 24px;
+}
