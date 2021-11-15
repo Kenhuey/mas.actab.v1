@@ -163,10 +163,6 @@
   margin-top: 12px;
 }
 
-.most-laps-ranks-tab .n-data-table-thead {
-  display: none !important;
-}
-
 .online-server-board {
   display: flex;
   align-items: center;

@@ -8,11 +8,15 @@
             <div class="container-session-detail-main">
               <div class="container-session-detail-main-left">
                 <div class="session-banner-container">
-                  <div class="session-banner"></div>
+                  <div class="session-banner" :style="bannerStyle"></div>
                   <div class="session-title">
                     <span
                       >{{ sessionData.sessionInfo.TrackName }} -
-                      {{ sessionData.sessionInfo.TrackConfig }}</span
+                      {{
+                        sessionData.sessionInfo.TrackConfig === ""
+                          ? "Default"
+                          : sessionData.sessionInfo.TrackConfig
+                      }}</span
                     >
                   </div>
                 </div>
@@ -236,6 +240,7 @@ export default defineComponent({
   components: { RouterHeader },
   setup() {
     // Common Resource
+    const bannerStyle: Ref<any> = ref({});
     const route = useRoute();
     const router = useRouter();
     const routeTitle: Ref<Array<string>> = ref([]);
@@ -319,7 +324,7 @@ export default defineComponent({
         }
       },
       {
-        title: "Laps/Cuts",
+        title: "Laps/Cuts Count",
         render(row: any) {
           return h(
             "span",
@@ -538,6 +543,10 @@ export default defineComponent({
           sectorData.lapTime = sessionData.value.sessionLaps[i].LapTime;
           sectorsData.value.push(sectorData);
         }
+        // Set banner
+        bannerStyle.value = {
+          backgroundImage: `url("data:image/png;base64,${sessionData.value.sessionBannerB64Str}")`
+        };
         // Done
         loading.value = false;
       })
@@ -556,7 +565,8 @@ export default defineComponent({
       sectorsColums,
       sectorsData,
       crashsColums,
-      loading
+      loading,
+      bannerStyle
     };
   }
 });

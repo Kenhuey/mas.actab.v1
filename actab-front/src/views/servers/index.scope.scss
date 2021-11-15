@@ -1,10 +1,21 @@
 @media screen and (max-width: 768px) {
-    // .main-title {
-    //     display: none !important;
-    // }
-
     .card-title-container-s {
         justify-content: center;
+    }
+}
+
+@media screen and (max-width: 1280px) {
+    .live-map-container {
+        display: block !important;
+    }
+
+    .player-list-container {
+        padding-left: 0px !important;
+        padding-top: 24px !important;
+    }
+
+    .live-map-scroll-container {
+        margin: 0 auto !important;
     }
 }
 
@@ -43,4 +54,24 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
+}
+
+.live-map-container {
+    width: 100%;
+    border-radius: 4px;
+    display: flex;
+}
+
+.live-map-scroll-container {
+    max-width: 514px;
+    border: 1px solid #e0e0e6;
+}
+
+#containerMap {
+    background: #ffffff;
+}
+
+.player-list-container {
+    width: 100%;
+    padding-left: 24px;
 }

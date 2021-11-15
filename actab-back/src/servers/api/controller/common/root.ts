@@ -9,7 +9,7 @@ export class RootController extends BaseController {
       next: Next
     ) => {
       setCommonHeader(context);
-      context.body = { message: "Running." };
+      context.body = { message: "AcTab Api Running." };
       next();
     };
   }

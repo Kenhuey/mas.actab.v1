@@ -21,7 +21,11 @@
             <div class="leave-height-inner">
               <n-statistic
                 label="Live Servers"
-                :value="-1"
+                :value="
+                  liveServers.liveServers === undefined
+                    ? 0
+                    : liveServers.liveServers.length
+                "
                 class="statu-servers-content"
               >
                 <template #prefix>
@@ -30,16 +34,25 @@
                   </n-icon>
                 </template>
               </n-statistic>
-              <n-statistic label="Online Players" class="statu-servers-content"
-                >-1</n-statistic
-              >
+              <n-statistic label="Online Players" class="statu-servers-content">
+                {{ onlinePlayers }}
+              </n-statistic>
             </div>
             <n-statistic
               label="Activity Server"
               class="statu-servers-content-event"
             >
-              <n-ellipsis style="max-width: 100%;">-</n-ellipsis></n-statistic
-            >
+              <n-ellipsis style="max-width: 100%;">
+                <div v-if="liveServers.liveServers[0] !== undefined">
+                  <n-button size="tiny" type="info" @click="jumpToServerPage">
+                    {{ liveServers.liveServers[0].server.serverName }}
+                  </n-button>
+                </div>
+                <div v-else>
+                  -
+                </div>
+              </n-ellipsis>
+            </n-statistic>
           </div>
         </n-card>
       </div>
@@ -55,7 +68,9 @@
                   <user class="statistics-icon-inner" style="color: #ff9f43;" />
                 </n-icon>
                 <div class="statistics-text">
-                  <span class="statistics-text-count">114</span>
+                  <span class="statistics-text-count">{{
+                    overviewDatas.statistics.totalPlayers
+                  }}</span>
                   <br />
                   <span class="statistics-text-type">Total Players</span>
                 </div>
@@ -68,7 +83,9 @@
                   />
                 </n-icon>
                 <div class="statistics-text">
-                  <span class="statistics-text-count">514</span>
+                  <span class="statistics-text-count">{{
+                    overviewDatas.statistics.totalLaps
+                  }}</span>
                   <br />
                   <span class="statistics-text-type">Total Laps</span>
                 </div>
@@ -81,7 +98,9 @@
                   />
                 </n-icon>
                 <div class="statistics-text">
-                  <span class="statistics-text-count">1919</span>
+                  <span class="statistics-text-count">{{
+                    overviewDatas.statistics.totalSessions
+                  }}</span>
                   <br />
                   <span class="statistics-text-type">Total Sessions</span>
                 </div>
@@ -132,15 +151,17 @@
                 class="recent-session-tab"
                 :bordered="false"
                 :columns="recentSessionColumns"
-                :data="tempRecentSessionData"
+                :data="overviewDatas.recentSessions"
                 size="small"
+                :loading="loading"
               />
               <n-data-table
                 class="recent-session-tab-mobile"
                 :bordered="false"
                 :columns="recentSessionColumnsMobile"
-                :data="tempRecentSessionData"
+                :data="overviewDatas.recentSessions"
                 size="small"
+                :loading="loading"
               />
             </n-tab-pane>
             <n-tab-pane name="recentRaces" tab="Recent Races">
@@ -189,8 +210,9 @@
             class="most-laps-ranks-tab"
             :bordered="false"
             :columns="mostLapsColumns"
-            :data="tempMostLapsData"
+            :data="overviewDatas.mostLaps"
             size="small"
+            :loading="loading"
         /></n-card>
       </div>
     </div>
@@ -208,175 +230,10 @@ import {
   CircleDash,
   AlignBoxTopCenter
 } from "@vicons/carbon";
-import { defineComponent, h } from "vue";
-import { DataTableColumn, NTag } from "naive-ui";
-
-const mostLapsColumns: Array<DataTableColumn> = [
-  {
-    key: "rank",
-    ellipsis: {
-      tooltip: true
-    }
-  },
-  {
-    key: "player",
-    ellipsis: {
-      tooltip: true
-    }
-  },
-  {
-    key: "laps",
-    ellipsis: {
-      tooltip: true
-    }
-  }
-];
-
-const tempMostLapsData = [
-  {
-    rank: 1,
-    player: "HgBiss",
-    laps: "67"
-  },
-  {
-    rank: 2,
-    player: "Piggy",
-    laps: "9"
-  },
-  {
-    rank: 3,
-    player: "pk",
-    laps: "7"
-  }
-];
-
-const recentSessionColumns: Array<DataTableColumn> = [
-  {
-    title: "Server",
-    key: "server",
-    ellipsis: {
-      tooltip: true
-    }
-  },
-  {
-    title: "Track",
-    key: "track",
-    ellipsis: {
-      tooltip: true
-    }
-  },
-  {
-    title: "1st",
-    key: "champion",
-    ellipsis: {
-      tooltip: true
-    },
-    render(row: any) {
-      const tag = h(
-        NTag,
-        {
-          style: {
-            cursor: "pointer"
-          },
-          size: "small"
-        },
-        {
-          default: () => row.champion
-        }
-      );
-      return tag;
-    }
-  },
-  {
-    title: "2nd",
-    key: "runup",
-    ellipsis: {
-      tooltip: true
-    },
-    render(row: any) {
-      const tag = h(
-        NTag,
-        {
-          style: {
-            cursor: "pointer"
-          },
-          size: "small"
-        },
-        {
-          default: () => row.runup
-        }
-      );
-      return tag;
-    }
-  },
-  {
-    title: "3rd",
-    key: "third",
-    ellipsis: {
-      tooltip: true
-    },
-    render(row: any) {
-      const tag = h(
-        NTag,
-        {
-          style: {
-            cursor: "pointer"
-          },
-          size: "small"
-        },
-        {
-          default: () => row.third
-        }
-      );
-      return tag;
-    }
-  },
-  {
-    title: "Time",
-    key: "time",
-    ellipsis: {
-      tooltip: true
-    }
-  }
-];
-
-const recentSessionColumnsMobile = [
-  {
-    title: "Track",
-    key: "track",
-    ellipsis: {
-      tooltip: true
-    }
-  },
-  {
-    title: "Time",
-    key: "time",
-    ellipsis: {
-      tooltip: true
-    }
-  }
-];
-
-const tempRecentSessionData = [
-  {
-    key: 0,
-    server: "LRAC Test Server",
-    track: "Northern New York",
-    champion: "NgHunter",
-    runup: "CantonPD",
-    third: "CNCCP",
-    time: "2021-11-4 5:14"
-  },
-  {
-    key: 1,
-    server: "LRAC Test Server",
-    track: "Kaw Loong",
-    champion: "Shit",
-    runup: "Junk",
-    third: "Monkey",
-    time: "2021-11-4 5:14"
-  }
-];
+import { defineComponent, h, ref, Ref } from "vue";
+import { NButton } from "naive-ui";
+import { useRouter } from "vue-router";
+import { Apis } from "@/utils";
 
 export default defineComponent({
   name: "Overview",
@@ -392,13 +249,242 @@ export default defineComponent({
   },
   setup() {
     // Common resources
+    const router = useRouter();
+    const overviewDatas: Ref<any> = ref({
+      statistics: { totalPlayers: "-", totalLaps: "-", totalSessions: "-" },
+      recentSessions: [],
+      mostLaps: []
+    });
+    const recentSessionColumns = [
+      {
+        title: "Server",
+        key: "ServerName"
+      },
+      {
+        title: "Track",
+        render(row: any) {
+          return h(
+            NButton,
+            {
+              // color: "#18a085",
+              // text: true,
+              size: "tiny",
+              onClick: () => {
+                router.push({
+                  name: "sessionsDetail",
+                  params: { uuid: row.UUID }
+                });
+              }
+            },
+            { default: () => row.TrackName }
+          );
+        }
+      },
+      {
+        title: "1st",
+        render(row: any) {
+          return h(
+            NButton,
+            {
+              // color: "#18a085",
+              // text: true,
+              size: "tiny",
+              onClick: () => {
+                router.push({
+                  name: "playerProfile",
+                  params: { uuid: row.rank[0].sessionResult_DriverGuid }
+                });
+              }
+            },
+            { default: () => row.rank[0].sessionResult_DriverName }
+          );
+        }
+      },
+      {
+        title: "2nd",
+        render(row: any) {
+          if (row.rank[1] !== undefined) {
+            return h(
+              NButton,
+              {
+                // color: "#18a085",
+                // text: true,
+                size: "tiny",
+                onClick: () => {
+                  router.push({
+                    name: "playerProfile",
+                    params: { uuid: row.rank[1].sessionResult_DriverGuid }
+                  });
+                }
+              },
+              { default: () => row.rank[1].sessionResult_DriverName }
+            );
+          } else {
+            return h(
+              "span",
+              {},
+              {
+                default: () => {
+                  return "/";
+                }
+              }
+            );
+          }
+        }
+      },
+      {
+        title: "3rd",
+        render(row: any) {
+          if (row.rank[2] !== undefined) {
+            return h(
+              NButton,
+              {
+                // color: "#18a085",
+                // text: true,
+                size: "tiny",
+                onClick: () => {
+                  router.push({
+                    name: "playerProfile",
+                    params: { uuid: row.rank[2].sessionResult_DriverGuid }
+                  });
+                }
+              },
+              { default: () => row.rank[2].sessionResult_DriverName }
+            );
+          } else {
+            return h(
+              "span",
+              {},
+              {
+                default: () => {
+                  return "/";
+                }
+              }
+            );
+          }
+        }
+      },
+      {
+        title: "Time",
+        render(row: any) {
+          return h(
+            "span",
+            {},
+            {
+              default: () => {
+                const date = new Date(row.Date);
+                return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+              }
+            }
+          );
+        }
+      }
+    ];
+    const recentSessionColumnsMobile = [
+      {
+        title: "Track",
+        render(row: any) {
+          return h(
+            NButton,
+            {
+              // color: "#18a085",
+              // text: true,
+              size: "tiny",
+              onClick: () => {
+                router.push({
+                  name: "sessionsDetail",
+                  params: { uuid: row.UUID }
+                });
+              }
+            },
+            { default: () => row.TrackName }
+          );
+        }
+      },
+      {
+        title: "Time",
+        render(row: any) {
+          return h(
+            "span",
+            {},
+            {
+              default: () => {
+                const date = new Date(row.Date);
+                return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+              }
+            }
+          );
+        }
+      }
+    ];
+    const mostLapsColumns = [
+      {
+        title: "Rank",
+        render(_row: any, index: any) {
+          return h(
+            "span",
+            {},
+            {
+              default: () => {
+                return index + 1;
+              }
+            }
+          );
+        }
+      },
+      {
+        title: "Player",
+        render(row: any) {
+          return h(
+            NButton,
+            {
+              size: "tiny",
+              onClick: () => {
+                router.push({
+                  name: "playerProfile",
+                  params: { uuid: row.sessionLap_DriverGuid }
+                });
+              }
+            },
+            { default: () => row.sessionLap_DriverName }
+          );
+        }
+      },
+      {
+        title: "Laps",
+        key: "count"
+      }
+    ];
+    const loading = ref(true);
+    const liveServers: any = ref({ liveServers: [] });
+    const onlinePlayers = ref(0);
+    // Get datas
+    Apis.common.requestOverview().then(res => {
+      const data = res.data;
+      overviewDatas.value = data;
+      loading.value = false;
+    });
+    Apis.common.requestLiveServer().then(res => {
+      liveServers.value = res.data;
+      let playerCount = 0;
+      for (let i = 0; i < liveServers.value.liveServers.length; i += 1) {
+        playerCount += liveServers.value.liveServers[i].player.length;
+      }
+      onlinePlayers.value = playerCount;
+    });
+    function jumpToServerPage() {
+      router.push({ name: "servers" });
+    }
     // Done
     return {
       mostLapsColumns,
-      tempMostLapsData,
       recentSessionColumns,
       recentSessionColumnsMobile,
-      tempRecentSessionData
+      overviewDatas,
+      loading,
+      liveServers,
+      onlinePlayers,
+      jumpToServerPage
     };
   }
 });

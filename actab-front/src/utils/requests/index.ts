@@ -1,3 +1,3 @@
-export { service } from "./service";
+export { service, apiHost } from "./service";
 
 export * as Apis from "./apis";

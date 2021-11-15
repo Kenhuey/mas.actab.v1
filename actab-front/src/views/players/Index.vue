@@ -34,7 +34,7 @@ import { defineComponent, ref, Ref, reactive, h } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import RouterHeader from "@/components/RouterHeader/RouterHeader.vue";
 import { Apis } from "@/utils";
-import { NButton } from "naive-ui";
+import { NButton, NBadge } from "naive-ui";
 
 export default defineComponent({
   name: "Players",
@@ -54,7 +54,15 @@ export default defineComponent({
     });
     const playerTabColums = [
       {
-        title: "Statu"
+        title: "Statu",
+        align: "center",
+        render(row: any) {
+          return h(
+            NBadge,
+            { type: row.online === true ? "success" : "error", dot: true },
+            {}
+          );
+        }
       },
       {
         title: "Nick",

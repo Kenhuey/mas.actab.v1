@@ -1,8 +1,11 @@
 import Dgram from "dgram";
-import { Connection } from "typeorm";
+import { Connection, getManager } from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 import { ReceiveHandler, CommandHandler } from "./event";
 import { Logger, pluginAddress } from "../../cores";
 import { AcsConfig } from "../../common";
+import { CacheServer } from "../../orm";
+import * as HardCode from "../../hardcode";
 
 /**
  * The `UdpServer` module provides plugin's data handlers
@@ -36,6 +39,8 @@ export class UdpServer {
     readonly iCommandPort: number;
     readonly iAddress: string;
   };
+
+  private readonly CacheServerUuid: string = uuidv4();
 
   /**
    * Constructor
@@ -75,7 +80,8 @@ export class UdpServer {
       this.commandHandler,
       connection,
       acsCwdPath,
-      acsConfig
+      acsConfig,
+      this.CacheServerUuid
     );
     // Done
     this.logger.info("UDP server created.");
@@ -100,6 +106,35 @@ export class UdpServer {
     });
     // Bind server
     this.serverInstance.bind(this.metaData.iListenPort, this.metaData.iAddress);
+    // Start update server
+    const that = this;
+    async function update() {
+      // Update Statu
+      const server = await getManager()
+        .getRepository(CacheServer)
+        .findOne({
+          where: {
+            tempUUID: that.CacheServerUuid,
+          },
+        });
+      if (server === undefined) {
+        const cacheServer: CacheServer = new CacheServer();
+        cacheServer.tempUUID = that.CacheServerUuid;
+        cacheServer.lastUpdate = new Date();
+        cacheServer.serverName = that.acsConfig.NAME;
+        that.connection.manager.save(cacheServer).catch((error: unknown) => {
+          that.logger.error(error);
+        });
+      } else {
+        server.lastUpdate = new Date();
+        server.serverName = that.acsConfig.NAME;
+        that.connection.manager.save(server);
+      }
+    }
+    update();
+    setInterval(() => {
+      update();
+    }, 1000 * HardCode.serverGlobalUpdateSec);
     return this;
   }
 

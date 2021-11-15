@@ -109,7 +109,7 @@ const mainRoutes: any = [
               () => "All sessions"
             ),
           key: "sessions",
-          // icon: renderIcon(UserMultiple),
+          icon: renderIcon(AiResults),
         },
       ],
     },

@@ -158,7 +158,8 @@ async function main() {
               commonObjects.configs.mysql.port,
               commonObjects.configs.mysql.username,
               commonObjects.configs.mysql.password,
-              commonObjects.configs.mysql.database
+              commonObjects.configs.mysql.database,
+              commonObjects.configs
             );
             try {
               apiServer.run();
@@ -175,7 +176,7 @@ async function main() {
         }
       })
       .catch((error: unknown) => {
-        throw error;
+        commonObjects.logger.info(error);
       });
     process.exitCode = 0;
   } catch (error: unknown) {

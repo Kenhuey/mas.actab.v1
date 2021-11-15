@@ -253,6 +253,9 @@
     height: 35px;
     background: #f0f0f1;
     border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .flex-item-data {

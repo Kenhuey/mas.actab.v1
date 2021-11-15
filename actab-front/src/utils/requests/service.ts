@@ -1,7 +1,9 @@
 import axios from "axios";
 
+export const apiHost = "127.0.0.1:8081";
+
 const service = axios.create({
-  baseURL: "http://127.0.0.1:8081/",
+  baseURL: `http://${apiHost}/`,
 });
 
 /**
@@ -9,11 +11,11 @@ const service = axios.create({
  */
 service.interceptors.request.use(
   function(config) {
-    // TODO: Before request
+    // Before request
     return config;
   },
   function(error) {
-    // TODO: When request error
+    // When request error
     return Promise.reject(error);
   }
 );
@@ -30,7 +32,7 @@ service.interceptors.response.use(
     return response;
   },
   function(error) {
-    // TODO: When response error
+    // When response error
     return Promise.reject(error);
   }
 );

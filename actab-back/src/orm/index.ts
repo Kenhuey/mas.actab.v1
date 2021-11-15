@@ -5,10 +5,15 @@ import { SessionLap } from "./sessions/sessionLap";
 import { SessionEvent } from "./sessions/sessionEvent";
 import { SessionResult } from "./sessions/sessionResult";
 import { Users } from "./users";
+import { CacheServer } from "./cache/server";
+import { CachePlayer } from "./cache/player";
+import { CachePosition } from "./cache/position";
 
 export { Session, SessionCar, SessionEvent, SessionLap, SessionResult };
-
 export { Users };
+export { CacheServer };
+export { CachePlayer };
+export { CachePosition };
 
 /**
  * The `createOrmConnection` function provides ORM connection promise
@@ -34,6 +39,9 @@ export async function createOrmConnection(
       SessionResult,
       SessionCar,
       Users,
+      CacheServer,
+      CachePlayer,
+      CachePosition,
     ],
     synchronize: true,
     logging: ["error", "info", "log", "warn", "migration", "schema"],

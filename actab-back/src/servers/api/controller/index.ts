@@ -1,8 +1,9 @@
-import { ParameterizedContext, Next } from "koa";
+import { ParameterizedContext, Next, Context } from "koa";
 import { IRouterParamContext } from "koa-router";
 
 export abstract class BaseController {
-  public abstract middleware(): (
+  // eslint-disable-next-line no-unused-vars
+  public abstract middleware(params?: any): (
     // eslint-disable-next-line no-unused-vars
     context: ParameterizedContext<any, IRouterParamContext<any, {}>, any>,
     // eslint-disable-next-line no-unused-vars
@@ -18,3 +19,12 @@ export function setCommonHeader(
 }
 
 export * as Controllers from "./common";
+
+export abstract class BaseWsController {
+  public abstract middleware(): (
+    // eslint-disable-next-line no-unused-vars
+    context: Context
+  ) => Promise<void>;
+}
+
+export * as WsControllers from "./ws";

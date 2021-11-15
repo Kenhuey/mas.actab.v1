@@ -156,8 +156,9 @@
 }
 
 .session-banner {
-  background: #f0f0f1;
   height: calc(100% - 20px);
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .session-title {

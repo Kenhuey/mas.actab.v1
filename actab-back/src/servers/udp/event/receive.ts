@@ -1,5 +1,5 @@
 import EventEmitter from "events";
-import { Connection } from "typeorm";
+import { Connection, getManager } from "typeorm";
 import { plainToClass } from "class-transformer";
 import Path from "path";
 import { readFile } from "fs";
@@ -7,7 +7,7 @@ import { receiveCodes } from "./codes";
 import { BufferReader } from "../../../utils";
 import { Logger } from "../../../cores";
 import { CommandHandler } from "./send";
-import { projectUrl } from "../../../hardcode";
+import * as HardCode from "../../../hardcode";
 import * as Entities from "../../../orm";
 import { AcsConfig } from "../../../common";
 
@@ -40,6 +40,8 @@ export class ReceiveHandler {
    */
   private readonly acsCwd: string;
 
+  private readonly CacheServerUuid: string;
+
   /**
    * Constructor
    * @param `handlerLogger` - Logging target
@@ -53,9 +55,11 @@ export class ReceiveHandler {
     readonly handlerCommander: CommandHandler,
     readonly connection: Connection,
     readonly acsCwdPath: string,
-    readonly acsConfig: AcsConfig
+    readonly acsConfig: AcsConfig,
+    readonly cServerUuid: string
   ) {
     // Common resources
+    this.CacheServerUuid = cServerUuid;
     this.emitter = new EventEmitter();
     this.logger = handlerLogger;
     this.commandHandler = handlerCommander;
@@ -96,7 +100,10 @@ export class ReceiveHandler {
      * @param `code` - Receving code
      * @param `data` - Receving data
      */
-    function connectionHandler(code: string, data: Buffer): void {
+    async function connectionHandler(
+      code: string,
+      data: Buffer
+    ): Promise<void> {
       try {
         // Common resources
         const reader: BufferReader = new BufferReader(data);
@@ -115,7 +122,15 @@ export class ReceiveHandler {
             code,
             `User "${result.driverGuid}(${result.driverNick})" connecting server. Using "${result.carModel}(${result.carSkin})" at index "${result.carId}".`
           );
-          // Update Users Database
+          // Update User statu
+          const player: Entities.CachePlayer = new Entities.CachePlayer();
+          player.playerGuid = result.driverGuid;
+          player.lastCarId = result.carId;
+          player.lastServerUUID = that.CacheServerUuid;
+          that.connection.manager
+            .getRepository(Entities.CachePlayer)
+            .save(player);
+          // Update User Database
           that.connection.manager
             .getRepository(Entities.Users)
             .findOne({ where: { SteamGUID: result.driverGuid } })
@@ -137,6 +152,25 @@ export class ReceiveHandler {
               );
             });
         } else if (code === receiveCodes.CONNECTION_CLOSE.toString()) {
+          // Delete User statu
+          const player: Entities.CachePlayer = new Entities.CachePlayer();
+          player.playerGuid = result.driverGuid;
+          player.lastCarId = result.carId;
+          player.lastServerUUID = that.CacheServerUuid;
+          that.connection.manager
+            .getRepository(Entities.CachePlayer)
+            .delete(player);
+          const cachePositions = await getManager()
+            .getRepository(Entities.CachePosition)
+            .createQueryBuilder("cachePosition")
+            .where({
+              serverUUID: that.CacheServerUuid,
+              carId: result.carId,
+            })
+            .getMany();
+          await that.connection.manager
+            .getRepository(Entities.CachePosition)
+            .remove(cachePositions);
           that.logInfo(
             code,
             `User "${result.driverGuid}(${result.driverNick})" dissconnect from server. After using "${result.carModel}(${result.carSkin})" at index "${result.carId}".`
@@ -180,7 +214,7 @@ export class ReceiveHandler {
      * @param `code` - Receving code
      * @param `data` - Receving data
      */
-    function sessionHandler(code: string, data: Buffer): void {
+    async function sessionHandler(code: string, data: Buffer): Promise<void> {
       try {
         // Common resources
         const reader: BufferReader = new BufferReader(data);
@@ -206,6 +240,21 @@ export class ReceiveHandler {
         };
         // Resolve data
         if (code === receiveCodes.SESSION_NEW.toString()) {
+          try {
+            const nowServer = await getManager()
+              .getRepository(Entities.CacheServer)
+              .findOne({ where: { tempUUID: that.CacheServerUuid } });
+            if (nowServer !== undefined) {
+              nowServer.lastTrackName = result.trackName;
+              nowServer.lastTrackLayout = result.trackConfig;
+              await getManager()
+                .getRepository(Entities.CacheServer)
+                .save(nowServer);
+              that.logger.info("Updated cache server session info.");
+            }
+          } catch (error) {
+            that.logger.info(error);
+          }
           that.logInfo(
             code,
             `New session "${result.sessionName}" started, using map "${
@@ -252,6 +301,10 @@ export class ReceiveHandler {
      */
     this.emitter.on(receiveCodes.SESSION_NEW.toString(), (data: Buffer) => {
       sessionHandler(receiveCodes.SESSION_NEW.toString(), data);
+      // Update Real-Time position
+      this.commandHandler.setRealtimePositionInterval(
+        1000 * HardCode.mapRefresh
+      );
     });
     /**
      * SESSION_INFO
@@ -746,7 +799,7 @@ export class ReceiveHandler {
         // Send welcome message
         this.commandHandler.sendChat(
           result.carId,
-          `AcTab plugin is running, See document and open-source in ${projectUrl}.`
+          `AcTab plugin is running, See document and open-source in ${HardCode.projectUrl}.`
         );
         this.commandHandler.sendChat(
           result.carId,
@@ -794,7 +847,6 @@ export class ReceiveHandler {
           },
         };
         // Resolve data
-        // TODO: Update to Redis
         if (eventTypeTemp === receiveCodes.COLLISION_CAR) {
           this.logInfo(
             receiveCodes.COLLISION_CAR.toString(),
@@ -855,8 +907,14 @@ export class ReceiveHandler {
           nsp: reader.nextFloatLE(),
         };
         // Resolve data
-        // TODO: Update to Redis
-        this.logger.warn(result);
+        const position = new Entities.CachePosition();
+        position.carId = result.carId;
+        position.tempUUID = `${that.CacheServerUuid}-${result.carId}`;
+        position.serverUUID = that.CacheServerUuid;
+        position.positionX = result.position.x;
+        position.positionY = result.position.y;
+        position.positionZ = result.position.z;
+        getManager().getRepository(Entities.CachePosition).save(position);
       } catch (error: unknown) {
         that.emitter.emit("custom-error", error);
       }
@@ -888,7 +946,6 @@ export class ReceiveHandler {
           driverGuid: reader.nextStringW(),
         };
         // Resolve data
-        // TODO:
         this.logger.warn(result);
       } catch (error: unknown) {
         that.emitter.emit("custom-error", error);

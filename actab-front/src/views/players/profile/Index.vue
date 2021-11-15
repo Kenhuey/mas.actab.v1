@@ -8,7 +8,12 @@
             <div class="container-info-avatar">
               <div class="container-info-avatar-inner">
                 <div class="container-info-avatar-pic-outer">
-                  <div class="container-info-avatar-pic">1</div>
+                  <div class="container-info-avatar-pic">
+                    <n-avatar
+                      style="width: 100%; height: 100%;"
+                      src="/default-user.png"
+                    />
+                  </div>
                 </div>
                 <div class="container-info-avatar-detail-1">
                   <div class="user-nick-text">
@@ -20,7 +25,26 @@
                   </div>
                   <div class="user-info-statu">
                     <div class="user-info-text">
-                      <n-badge dot /><span class="user-info-text-span">-</span>
+                      <n-badge
+                        type="success"
+                        dot
+                        v-if="playerStatu.online === true"
+                      />
+                      <n-badge
+                        type="error"
+                        dot
+                        v-if="playerStatu.online === false"
+                      />
+                      <n-badge
+                        type="warning"
+                        dot
+                        v-if="playerStatu.online === undefined"
+                      />
+                      <span class="user-info-text-span">
+                        <span v-if="playerStatu.online === true">Online</span>
+                        <span v-if="playerStatu.online === false">Offline</span>
+                        <span v-if="playerStatu.online === undefined">-</span>
+                      </span>
                     </div>
                     <div class="user-info-text steam-guid-text">
                       Steam:<span class="user-info-text-span">
@@ -37,7 +61,9 @@
               <div class="container-info-detail-total">
                 <div class="container-info-detail-total-div">
                   <div class="flex-item-total">
-                    <div class="flex-item-icon"></div>
+                    <div class="flex-item-icon">
+                      <n-icon color="#6e6b7b" size="18"> <AiResults /> </n-icon>
+                    </div>
                     <div class="flex-item-data">
                       <div>
                         {{
@@ -64,7 +90,11 @@
                 <div class="container-info-detail-total-div">
                   <div class="container-info-detail-total-div">
                     <div class="flex-item-total">
-                      <div class="flex-item-icon"></div>
+                      <div class="flex-item-icon">
+                        <n-icon color="#6e6b7b" size="18">
+                          <CircleDash />
+                        </n-icon>
+                      </div>
                       <div class="flex-item-data">
                         <div>
                           {{
@@ -185,11 +215,11 @@
             </div> -->
             <div class="container-statu-playing">
               <div class="container-statu-playing-title">
-                <div class="user-statu-title">Playing</div>
+                <div class="user-statu-title">Playing At</div>
               </div>
               <div class="container-statu-playing-data">
                 <div class="user-statu-playing">
-                  -
+                  {{ playerStatu.playingServerName === undefined ? "-": playerStatu.playingServerName}}
                 </div>
               </div>
             </div>
@@ -242,10 +272,11 @@ import { useRoute, useRouter } from "vue-router";
 import RouterHeader from "@/components/RouterHeader/RouterHeader.vue";
 import { Apis, formatDuringToString } from "@/utils";
 import { NButton } from "naive-ui";
+import { AiResults, CircleDash } from "@vicons/carbon";
 
 export default defineComponent({
   name: "PlayerProfile",
-  components: { RouterHeader },
+  components: { RouterHeader, AiResults, CircleDash },
   setup() {
     // Common Resource
     const loading = ref(true);
@@ -332,6 +363,7 @@ export default defineComponent({
         }
       }
     ];
+    const playerStatu: Ref<any> = ref({});
     // Get datas
     Apis.common
       .requestPlayerDetail(profileUuid)
@@ -346,6 +378,14 @@ export default defineComponent({
     const sessionPagination = reactive({
       pageSize: 15
     });
+    Apis.common
+      .requestPlayerStatu(profileUuid)
+      .then(res => {
+        playerStatu.value = res.data;
+      })
+      .catch(() => {
+        playerStatu.value.online = false;
+      });
     // Done
     return {
       routeTitle,
@@ -353,7 +393,8 @@ export default defineComponent({
       playerDetail,
       jumpToSession,
       loading,
-      sessionPagination
+      sessionPagination,
+      playerStatu
     };
   }
 });
